@@ -15,3 +15,7 @@ the capability to withstand longer delays is highly encouraged.
   * GPS coordinates of the launch vehicles landing location shall be known and used solely for the purpose of verification of payload functionality and mission success.
 
 * No external hardware or software is permitted outside the team’s prep area or the launch vehicle itself prior to launch.
+
+## References
+
+1. <https://cdn-shop.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf> 
