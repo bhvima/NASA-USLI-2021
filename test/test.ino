@@ -33,41 +33,29 @@ void setup(void) {
   Serial.println("");
 
   bno.setExtCrystalUse(true);
-}
 
-double xPos = 0, yPos = 0, headingVel = 0;
-double ACCEL_VEL_TRANSITION =  (double)(BNO055_SAMPLERATE_DELAY_MS) / 1000.0;
-double ACCEL_POS_TRANSITION = 0.5 * ACCEL_VEL_TRANSITION * ACCEL_VEL_TRANSITION;
-double DEG_2_RAD = 0.01745329251;
+  /* Calibrate the sensors
+     - Place the device in 6 different stable positions for a period
+     of few seconds to allow the accelerometer to calibrate.
+     - Make sure that there is slow movement between 2 stable positions
+     - The 6 stable positions could be in any direction, but make sure
+       that the device is lying at least once perpendicular to the x, y
+       and z axis.
+     - Place the device in a single stable position for a period of few
+       seconds to allow the gyroscope to calibrate
+  */
+  uint8_t accel, gyro = 0;
+  while(!(accel == 3 && gyro == 3)) {
+    bno.getCalibration(NULL, &gyro, &accel, NULL);
+  }
+  Serial.println("Sensor Calibrated");
+}
 
 void loop(void) {
 
   unsigned long tStart = micros();
 
-  sensors_event_t orientationData , linearAccelData;
-  bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
-  bno.getEvent(&linearAccelData, Adafruit_BNO055::VECTOR_LINEARACCEL);
-
-  xPos = xPos + ACCEL_POS_TRANSITION * linearAccelData.acceleration.x;
-  yPos = yPos + ACCEL_POS_TRANSITION * linearAccelData.acceleration.y;
-
-  // velocity of sensor in the direction it's facing
-  headingVel = ACCEL_VEL_TRANSITION * linearAccelData.acceleration.x / cos(DEG_2_RAD * orientationData.orientation.x);
-
-  Serial.print("Heading: ");
-  Serial.println(orientationData.orientation.x);
-  Serial.print("Position: ");
-  Serial.print(xPos);
-  Serial.print(" , ");
-  Serial.println(yPos);
-  Serial.print("Speed: ");
-  Serial.println(headingVel);
-  Serial.println("-------");
-
-  while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000))
-  {
-    //poll until the next sample is ready
-  }
+  while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000));
 
   /*
   imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
