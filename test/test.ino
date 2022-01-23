@@ -8,6 +8,20 @@
 
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
+void displayCalStatus(void)
+{
+  /* Get the four calibration values (0..3) */
+  /* Any sensor data reporting 0 should be ignored, */
+  /* 3 means 'fully calibrated" */
+  uint8_t gyro, accel = 0;
+  bno.getCalibration(NULL, &gyro, &accel, NULL);
+
+  Serial.print("G:");
+  Serial.print(gyro, DEC);
+  Serial.print(" A:");
+  Serial.println(accel, DEC);
+}
+
 void setup(void) {
   Serial.begin(115200);
 
@@ -30,7 +44,6 @@ void setup(void) {
   Serial.print("Current Temperature: ");
   Serial.print(temp);
   Serial.println(" C");
-  Serial.println("");
 
   bno.setExtCrystalUse(true);
 
@@ -47,6 +60,7 @@ void setup(void) {
   uint8_t accel, gyro = 0;
   while(!(accel == 3 && gyro == 3)) {
     bno.getCalibration(NULL, &gyro, &accel, NULL);
+    displayCalStatus();
   }
   Serial.println("Sensor Calibrated");
 }
@@ -55,25 +69,26 @@ void loop(void) {
 
   unsigned long tStart = micros();
 
-  while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000));
+  // Quaternion data
+  imu::Quaternion quat = bno.getQuat();
+  Serial.print("qW: ");
+  Serial.print(quat.w(), 4);
+  Serial.print(" qX: ");
+  Serial.print(quat.x(), 4);
+  Serial.print(" qY: ");
+  Serial.print(quat.y(), 4);
+  Serial.print(" qZ: ");
+  Serial.println(quat.z(), 4);
 
-  /*
-  imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
-  Serial.print("X: ");
-  Serial.print(euler.x());
-  Serial.print(" Y: ");
-  Serial.print(euler.y());
-  Serial.print(" Z: ");
-  Serial.print(euler.z());
-  Serial.print("\n");
-
-  imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
+  //Linear Acceleration
+  imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  accel = quat.rotateVector(accel);
   Serial.print("X: ");
   Serial.print(accel.x());
   Serial.print(" Y: ");
   Serial.print(accel.y());
   Serial.print(" Z: ");
-  Serial.print(accel.z());
-  Serial.print("\n");
-  */
+  Serial.println(accel.z());
+
+  while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000));
 }
