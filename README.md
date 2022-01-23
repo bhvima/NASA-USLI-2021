@@ -16,6 +16,8 @@ the capability to withstand longer delays is highly encouraged.
 
 * No external hardware or software is permitted outside the team’s prep area or the launch vehicle itself prior to launch.
 
+* Magnetometers and any data gathered by a magnetometer is an example of a similar technology that is prohibited due to not knowing if the generic planetary body we are simulating a landing on has a magnetic field.
+
 ## Solution
 
 The payload will be capable of autonomously locating the launch vehicle upon landing and identify its grid position on an aerial image of the launch field (with the dimension of each grid box equal to or less than 250 feet by 250 feet) without the use of a global positioning system (GPS). The payload will consist of an Inertial Navigation System (INS), radio and a power source. Using the measurements from the onboard sensor the payload will compute its relative position to the launch site. There will be a constant downlink of the data via the radio to the ground station. The criterion for success is defined by accurate calculation of the launch vehicles current position within the range of the launch field (2500 feet in every direction), downlink of telemetry data and safe recovery of payload.
@@ -31,6 +33,16 @@ Components                 |  Circuit
 - Download the [Arduino IDE 2.0](https://www.arduino.cc/en/software)
 - (In the Arduino IDE) Sketch > Include Library > Manage Libraries
 - Install `Adafruit Unified Sensor by Adafruit` and `Adafruit BNO055 by Adafruit`
+
+## Adafruit BNO055
+
+The sensor comprises of an accelerometer, gyroscope and magnetometer. The sensor fusion modes are meant to calculate measures describing the orientation of the device in space.
+Since, the use of magnetometer is prohibited the absolute orientation or orientation of the sensor with respect to the earth and its magnetic field is unknown. The operation mode selected will ensure the magnetometer is suspended. The non-absolute or relative orientation calculated will be with respect to the sensor's orientation and position before launch.
+
+### Operation Modes
+
+- Config Mode: This mode is used to configure BNO, wherein all output data is reset to zero and sensor fusion is halted. This is the only mode in which all the writable register map entries can be changed.
+- IMU Mode: In the IMU mode the relative orientation of the BNO055 in space is calculated from the accelerometer and gyroscope data.
 
 ## References
 
