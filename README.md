@@ -22,7 +22,15 @@ The payload will be capable of autonomously locating the launch vehicle upon lan
 
 ## Circuit Diagram
 
-![Schematic](files/circuit.png)
+Components                 |  Circuit
+:-------------------------:|:-------------------------:
+![](images/components.png) |  ![](images/circuit.png)
+
+## Getting Started
+
+- Download the [Arduino IDE 2.0](https://www.arduino.cc/en/software)
+- (In the Arduino IDE) Sketch > Include Library > Manage Libraries
+- Install `Adafruit Unified Sensor by Adafruit` and `Adafruit BNO055 by Adafruit`
 
 ## References
 
