@@ -8,14 +8,8 @@
 
 Adafruit_BNO055 bno = Adafruit_BNO055();
 
-void displayCalStatus(void)
+void displayCalStatus(uint8_t gyro, uint8_t accel)
 {
-  /* Get the four calibration values (0..3) */
-  /* Any sensor data reporting 0 should be ignored, */
-  /* 3 means 'fully calibrated" */
-  uint8_t gyro, accel = 0;
-  bno.getCalibration(NULL, &gyro, &accel, NULL);
-
   Serial.print("G:");
   Serial.print(gyro, DEC);
   Serial.print(" A:");
@@ -60,7 +54,7 @@ void setup(void) {
   uint8_t accel, gyro = 0;
   while(!(accel == 3 && gyro == 3)) {
     bno.getCalibration(NULL, &gyro, &accel, NULL);
-    displayCalStatus();
+    displayCalStatus(gyro, accel);
   }
   Serial.println("Sensor Calibrated");
 }
