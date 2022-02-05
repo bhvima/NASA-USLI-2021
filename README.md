@@ -44,6 +44,12 @@ Since, the use of magnetometer is prohibited the absolute orientation or orienta
 - Config Mode: This mode is used to configure BNO, wherein all output data is reset to zero and sensor fusion is halted. This is the only mode in which all the writable register map entries can be changed.
 - IMU Mode: In the IMU mode the relative orientation of the BNO055 in space is calculated from the accelerometer and gyroscope data.
 
+## XBee Shield
+
+To select between software and hardware serial, the XBee Shield includes a small, surface-mount slide switch. This switch allows you to select between the hardware serial port (UART position) and a software serial port connected to pins 2 (Arduino-side RX) and 3 (Arduino-side TX). 
+
+***Make sure the switch is in the "DLINE" position when uploading sketches***
+
 ## References
 
 1. <https://cdn-shop.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf> 
