@@ -53,3 +53,4 @@ To select between software and hardware serial, the XBee Shield includes a small
 ## References
 
 1. <https://cdn-shop.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf> 
+2. <https://learn.sparkfun.com/tutorials/xbee-shield-hookup-guide>
