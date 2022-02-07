@@ -50,6 +50,17 @@ To select between software and hardware serial, the XBee Shield includes a small
 
 ***Make sure the switch is in the "DLINE" position when uploading sketches***
 
+## Configuring Networks
+
+In order to transmit data wirelessly between your XBees, set the DH and DL parameters on each module to match the SH and SL (SH + SL = MAC address) of the other module. For example, if the MAC of XBee A is 0013A20012345678, then the DH of XBee B should be 0013A200 and the DL 12345678.
+
+| Parameter | XBEE A   | XBEE B   | Effect                                                                          |
+|-----------|----------|----------|---------------------------------------------------------------------------------|
+| NI        | Ground   | Rocket   | The node identifier string for this module.                                     |
+| ID        | 4B1D     | 4B1D     | The network ID. Only modules with matching IDs can communicate with each other. |
+| DH        | 13A200   | 13A200   | The upper 32 bits of the 64 bit destination address.                            |
+| DL        | 419309F1 | 41930582 | The lower 32 bits of the 64 bit destination address.                            |
+
 ## References
 
 1. <https://cdn-shop.adafruit.com/datasheets/BST_BNO055_DS000_12.pdf> 
