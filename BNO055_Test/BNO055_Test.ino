@@ -6,7 +6,7 @@
 /* Set the delay between fresh samples */
 #define BNO055_SAMPLERATE_DELAY_MS (10)
 
-Adafruit_BNO055 bno = Adafruit_BNO055();
+Adafruit_BNO055 bno = Adafruit_BNO055(-1, BNO055_ADDRESS_A, &Wire1);
 
 void displayCalStatus(uint8_t gyro, uint8_t accel)
 {
