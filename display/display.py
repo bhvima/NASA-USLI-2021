@@ -14,7 +14,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S',
     filename=f'rocket_launch_{time.strftime("%H_%M_%S", time.localtime())}.log')
 
-#dt = 10/1000.0
+dt = 10/1000.0
 #ACCEL_VEL_TRANSITION =  10/1000.0;
 #ACCEL_POS_TRANSITION = 0.5 * ACCEL_VEL_TRANSITION * ACCEL_VEL_TRANSITION;
 
@@ -25,15 +25,15 @@ def update(stdscr, ser):
 
     logging.info(str(data))
     
-    #vel = [a + (round(b, 0) * dt) for a, b in zip(vel, data[:3])]
-    #pos = [a + (b * dt) for a, b in zip(pos, vel)]
+    vel = [a + (round(b, 0) * dt) for a, b in zip(vel, data[:3])]
+    pos = [a + (b * dt) for a, b in zip(pos, vel)]
     stdscr.addstr(20, 5, time.strftime("%H:%M:%S", time.localtime()))
-    #stdscr.addstr(24, 5, f"X: {vel[0]}")
-    #stdscr.addstr(25, 5, f"Y: {vel[1]}")
-    #stdscr.addstr(26, 5, f"Z: {vel[2]}")
-    #stdscr.addstr(30, 5, f"X: {pos[0]}")
-    #stdscr.addstr(31, 5, f"Y: {pos[1]}")
-    #stdscr.addstr(32, 5, f"Z: {pos[2]}")
+    stdscr.addstr(24, 5, f"X: {vel[0]}")
+    stdscr.addstr(25, 5, f"Y: {vel[1]}")
+    stdscr.addstr(26, 5, f"Z: {vel[2]}")
+    stdscr.addstr(30, 5, f"X: {pos[0]}")
+    stdscr.addstr(31, 5, f"Y: {pos[1]}")
+    stdscr.addstr(32, 5, f"Z: {pos[2]}")
 
 def print_heading(stdscr, x, y, text):
     stdscr.attron(curses.color_pair(1))
@@ -79,8 +79,8 @@ def main(stdscr):
         stdscr.addstr(16, 5, f"qZ: {data[6]}")
 
         print_heading(stdscr, 18, 0, "Data")
-        #print_heading(stdscr, 22, 5, "Velocity")
-        #print_heading(stdscr, 28, 0, "Displacement")
+        print_heading(stdscr, 22, 5, "Velocity")
+        print_heading(stdscr, 28, 5, "Displacement")
 
         stdscr.attron(curses.color_pair(4))
         stdscr.addstr(height-1, 0, statusbarstr)
