@@ -41,10 +41,12 @@ def print_heading(stdscr, x, y, text):
     stdscr.attroff(curses.color_pair(1))
 
 def main(stdscr):
+    global vel, pos
+    
     k = 0
     ser = serial.Serial(sys.argv[1], 9600, timeout=1)
     time.sleep(1)
-    statusbarstr = "Press 'q' to exit"
+    statusbarstr = "Press 'q' to exit | Press 'z' to zero out values"
 
     curses.start_color()
     curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
@@ -55,6 +57,11 @@ def main(stdscr):
     stdscr.nodelay(True)
 
     while (k != ord('q')):
+        
+        if k == ord('z'):
+            pos = [0, 0, 0]
+            vel = [0, 0, 0]
+        
         stdscr.clear()
         height, width = stdscr.getmaxyx()
         try:
