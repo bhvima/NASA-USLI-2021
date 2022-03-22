@@ -8,32 +8,39 @@
 
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, BNO055_ADDRESS_A, &Wire1);
 
+double xPos = 0, yPos = 0, zPos = 0;
+double xVel = 0, yVel = 0, zVel = 0;
+
+double ACCEL_VEL_TRANSITION =  (double)(BNO055_SAMPLERATE_DELAY_MS) / 1000.0;
+double ACCEL_POS_TRANSITION = 0.5 * ACCEL_VEL_TRANSITION * ACCEL_VEL_TRANSITION;
+
 void displayAll()
 {
   imu::Quaternion quat = bno.getQuat();
   imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   accel = quat.rotateVector(accel);
-  Serial.print(accel.x());
+
+  xPos = xPos + xVel * ACCEL_VEL_TRANSITION + accel.x() * ACCEL_POS_TRANSITION;
+  yPos = yPos + yVel * ACCEL_VEL_TRANSITION + accel.y() * ACCEL_POS_TRANSITION;
+  zPos = zPos + zVel * ACCEL_VEL_TRANSITION + accel.z() * ACCEL_POS_TRANSITION;
+
+  xVel = xVel + accel.x() * ACCEL_VEL_TRANSITION;
+  yVel = yVel + accel.y() * ACCEL_VEL_TRANSITION;
+  zVel = zVel + accel.z() * ACCEL_VEL_TRANSITION;
+
+  Serial.print(xPos);
   Serial.print(" ");
-  Serial.print(accel.y());
+  Serial.print(yPos);
   Serial.print(" ");
-  Serial.print(accel.z());
-  Serial.print(" ");
-  
-  Serial.print(quat.w(), 4);
-  Serial.print(" ");
-  Serial.print(quat.x(), 4);
-  Serial.print(" ");
-  Serial.print(quat.y(), 4);
-  Serial.print(" ");
-  Serial.print(quat.z(), 4);
+  Serial.print(zPos);
   Serial.print(" ");
 
-  uint8_t cg, ca;
-  bno.getCalibration(NULL, &cg, &ca, NULL);
-  Serial.print(cg, DEC);
+  Serial.print(xVel);
   Serial.print(" ");
-  Serial.println(ca, DEC);
+  Serial.print(yVel);
+  Serial.print(" ");
+  Serial.println(zVel);
+
 }
 
 void displayCalStatus()
@@ -73,16 +80,14 @@ void displayLinAccel()
 void setup(void) {
   Serial.begin(9600);
 
-  /*  Initialize the sensor in Config mode */
-  if(!bno.begin(Adafruit_BNO055::OPERATION_MODE_CONFIG)) {
+  /*  Initialize the sensor in IMU mode */
+  if(!bno.begin(Adafruit_BNO055::OPERATION_MODE_IMUPLUS)) {
     /* There was a problem detecting the BNO055 ... check your connections */
     Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
     while(1);
   }
 
   delay(1000);
-
-  
 
   /* Display the current temperature */
   int8_t temp = bno.getTemp();
@@ -91,6 +96,12 @@ void setup(void) {
   Serial.println(" C");
 
   bno.setExtCrystalUse(true);
+
+  while(!bno.isFullyCalibrated()) {
+    displayCalStatus();
+  }
+  Serial.println("Sensor Calibrated");
+
 }
 
 void loop(void) {
