@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BNO055.h>
+#include <ArduinoQueue.h>
 #include <utility/imumaths.h>
 
 /* Set the delay between fresh samples */
@@ -21,6 +22,10 @@ void displayCalibrationStatus()
 imu::Quaternion quat;
 imu::Vector<3> accel;
 imu::Vector<3> zero_ref;
+
+ArduinoQueue<double> xValues(64);
+ArduinoQueue<double> yValues(64);
+double xTot = 0, yTot = 0;
 
 void setup(void) {
 
@@ -68,40 +73,61 @@ void setup(void) {
   zero_ref = zero_ref/1024;
 
   Serial.println("Zero Reference Calculated");
-}
 
-imu::Vector<3> avg_accel;
+  for(int i = 0; i < 64; i++) {
+    tStart = micros();
+
+    quat = bno.getQuat();
+    accel = quat.rotateVector(accel);
+    accel = accel - zero_ref;
+    
+    xValues.enqueue(accel.x());
+    xTot = xTot + accel.x();
+    yValues.enqueue(accel.y());
+    yTot = yTot + accel.y();
+
+    while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000));
+  }
+
+}
 
 double xPos = 0, yPos = 0;
 double xVel = 0, yVel = 0;
+double xAcc = 0, yAcc = 0;
 
-double dt = (double) (64 * BNO055_SAMPLERATE_DELAY_MS) / 1000.0;
-
-int i = 0;
+double dt = (double) (BNO055_SAMPLERATE_DELAY_MS) / 1000.0;
 
 void loop(void) {
 
   unsigned long tStart = micros();
 
-  quat = bno.getQuat();
-  accel = quat.rotateVector(accel);
-  accel = accel - zero_ref;
+  xTot = xTot - xValues.dequeue();
+  xValues.enqueue(accel.x());
+  xTot = xTot + accel.x(); 
 
-  avg_accel = avg_accel + accel;
+  yTot = yTot - yValues.dequeue();
+  yValues.enqueue(accel.y());
+  yTot = yTot + accel.y();
 
-  if(i == 63) {
-    avg_accel = avg_accel/64;
-    xVel = avg_accel.x() * dt;
-    xPos = xVel * dt;
-    yVel = avg_accel.y() * dt;
-    yPos = yVel * dt;
+  xAcc = xTot/64;
+  yAcc = yTot/64;
 
-    Serial.print(xPos);
-    Serial.print(" ");
-    Serial.println(yPos);
-  }
+  xVel = xAcc * dt;
+  xPos = xVel * dt;
+  yVel = yAcc * dt;
+  yPos = yVel * dt;
 
-  i = (i + 1) % 64;
+  Serial.print(xPos);
+  Serial.print(" ");
+  Serial.print(yPos);
+  Serial.print(" ");
+  Serial.print(xVel);
+  Serial.print(" ");
+  Serial.print(yVel);
+  Serial.print(" ");
+  Serial.print(xAcc);
+  Serial.print(" ");
+  Serial.println(yAcc);
 
   while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000));
 }
