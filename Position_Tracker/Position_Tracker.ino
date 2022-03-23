@@ -8,90 +8,22 @@
 
 Adafruit_BNO055 bno = Adafruit_BNO055(-1, BNO055_ADDRESS_A, &Wire1);
 
-double xPos = 0, yPos = 0, zPos = 0;
-double xVel = 0, yVel = 0, zVel = 0;
-double xAcc = 0, yAcc = 0, zAcc = 0;
-
-double cutoff = 0.05;
-
-double ACCEL_VEL_TRANSITION =  (double)(BNO055_SAMPLERATE_DELAY_MS) / 1000.0;
-double ACCEL_POS_TRANSITION = 0.5 * ACCEL_VEL_TRANSITION * ACCEL_VEL_TRANSITION;
-
-void displayAll()
-{
-  imu::Quaternion quat = bno.getQuat();
-  imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-  accel = quat.rotateVector(accel);
-
-  xAcc = (1-cutoff) * xAcc + cutoff * accel.x();
-  yAcc = (1-cutoff) * yAcc + cutoff * accel.y();
-  zAcc = (1-cutoff) * zAcc + cutoff * accel.z();
-
-  if(abs(xAcc) < 0.1) {
-    xAcc = 0;
-  }
-
-  if(abs(yAcc) < 0.1) {
-    yAcc = 0;
-  }
-
-  if(abs(zAcc) < 0.1) {
-    zAcc = 0;
-  }
-
-  xPos = xPos + xVel * ACCEL_VEL_TRANSITION + xAcc * ACCEL_POS_TRANSITION;
-  yPos = yPos + yVel * ACCEL_VEL_TRANSITION + yAcc * ACCEL_POS_TRANSITION;
-  zPos = zPos + zVel * ACCEL_VEL_TRANSITION + zAcc * ACCEL_POS_TRANSITION;
-
-  xVel = xVel + xAcc * ACCEL_VEL_TRANSITION;
-  yVel = yVel + yAcc * ACCEL_VEL_TRANSITION;
-  zVel = zVel + zAcc * ACCEL_VEL_TRANSITION;
-
-  Serial.print(xVel);
-  Serial.print(" ");
-  Serial.print(yVel);
-  Serial.print(" ");
-  Serial.print(zVel);
-  Serial.print(" ");
-  Serial.println("");
-
-}
-
-void displayCalStatus()
+void displayCalibrationStatus()
 {
   uint8_t gyro, accel;
   bno.getCalibration(NULL, &gyro, &accel, NULL);
   Serial.print("G:");
-  Serial.print(gyro, DEC);
+  Serial.print(gyro);
   Serial.print(" A:");
-  Serial.println(accel, DEC);
+  Serial.println(accel);
 }
 
-void displayQuat()
-{
-  imu::Quaternion quat = bno.getQuat();
-  Serial.print("qW: ");
-  Serial.print(quat.w(), 4);
-  Serial.print(" qX: ");
-  Serial.print(quat.x(), 4);
-  Serial.print(" qY: ");
-  Serial.print(quat.y(), 4);
-  Serial.print(" qZ: ");
-  Serial.println(quat.z(), 4);
-}
-
-void displayLinAccel()
-{
-  imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
-  Serial.print("X: ");
-  Serial.print(accel.x());
-  Serial.print(" Y: ");
-  Serial.print(accel.y());
-  Serial.print(" Z: ");
-  Serial.println(accel.z());
-}
+imu::Quaternion quat;
+imu::Vector<3> accel;
+imu::Vector<3> zero_ref;
 
 void setup(void) {
+
   Serial.begin(9600);
 
   /*  Initialize the sensor in IMU mode */
@@ -112,17 +44,64 @@ void setup(void) {
   bno.setExtCrystalUse(true);
 
   while(!bno.isFullyCalibrated()) {
-    displayCalStatus();
+    displayCalibrationStatus();
   }
-  Serial.println("Sensor Calibrated");
 
+  Serial.println("Sensor Calibrated"); 
+  
+  unsigned long tStart = micros();
+
+  double ref_ax, ref_ay, ref_az;
+
+  for(int i = 0; i < 0x400; i++) {
+    tStart = micros();
+
+    accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+    ref_ax = ref_ax + accel.x();
+    ref_ay = ref_ay + accel.y();
+    ref_az = ref_az + accel.z();
+
+    while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000));
+  }
+
+  zero_ref = imu::Vector<3>(ref_ax, ref_ay, ref_az);
+  zero_ref = zero_ref/1024;
+
+  Serial.println("Zero Reference Calculated");
 }
+
+imu::Vector<3> avg_accel;
+
+double xPos = 0, yPos = 0;
+double xVel = 0, yVel = 0;
+
+double dt = (double) (64 * BNO055_SAMPLERATE_DELAY_MS) / 1000.0;
+
+int i = 0;
 
 void loop(void) {
 
   unsigned long tStart = micros();
 
-  displayAll();
+  quat = bno.getQuat();
+  accel = quat.rotateVector(accel);
+  accel = accel - zero_ref;
+
+  avg_accel = avg_accel + accel;
+
+  if(i == 63) {
+    avg_accel = avg_accel/64;
+    xVel = avg_accel.x() * dt;
+    xPos = xVel * dt;
+    yVel = avg_accel.y() * dt;
+    yPos = yVel * dt;
+
+    Serial.print(xPos);
+    Serial.print(" ");
+    Serial.println(yPos);
+  }
+
+  i = (i + 1) % 64;
 
   while ((micros() - tStart) < (BNO055_SAMPLERATE_DELAY_MS * 1000));
 }
