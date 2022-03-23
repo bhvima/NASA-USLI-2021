@@ -10,6 +10,9 @@ Adafruit_BNO055 bno = Adafruit_BNO055(-1, BNO055_ADDRESS_A, &Wire1);
 
 double xPos = 0, yPos = 0, zPos = 0;
 double xVel = 0, yVel = 0, zVel = 0;
+double xAcc = 0, yAcc = 0, zAcc = 0;
+
+double cutoff = 0.05;
 
 double ACCEL_VEL_TRANSITION =  (double)(BNO055_SAMPLERATE_DELAY_MS) / 1000.0;
 double ACCEL_POS_TRANSITION = 0.5 * ACCEL_VEL_TRANSITION * ACCEL_VEL_TRANSITION;
@@ -20,26 +23,37 @@ void displayAll()
   imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   accel = quat.rotateVector(accel);
 
-  xPos = xPos + xVel * ACCEL_VEL_TRANSITION + accel.x() * ACCEL_POS_TRANSITION;
-  yPos = yPos + yVel * ACCEL_VEL_TRANSITION + accel.y() * ACCEL_POS_TRANSITION;
-  zPos = zPos + zVel * ACCEL_VEL_TRANSITION + accel.z() * ACCEL_POS_TRANSITION;
+  xAcc = (1-cutoff) * xAcc + cutoff * accel.x();
+  yAcc = (1-cutoff) * yAcc + cutoff * accel.y();
+  zAcc = (1-cutoff) * zAcc + cutoff * accel.z();
 
-  xVel = xVel + accel.x() * ACCEL_VEL_TRANSITION;
-  yVel = yVel + accel.y() * ACCEL_VEL_TRANSITION;
-  zVel = zVel + accel.z() * ACCEL_VEL_TRANSITION;
+  if(abs(xAcc) < 0.1) {
+    xAcc = 0;
+  }
 
-  Serial.print(xPos);
-  Serial.print(" ");
-  Serial.print(yPos);
-  Serial.print(" ");
-  Serial.print(zPos);
-  Serial.print(" ");
+  if(abs(yAcc) < 0.1) {
+    yAcc = 0;
+  }
+
+  if(abs(zAcc) < 0.1) {
+    zAcc = 0;
+  }
+
+  xPos = xPos + xVel * ACCEL_VEL_TRANSITION + xAcc * ACCEL_POS_TRANSITION;
+  yPos = yPos + yVel * ACCEL_VEL_TRANSITION + yAcc * ACCEL_POS_TRANSITION;
+  zPos = zPos + zVel * ACCEL_VEL_TRANSITION + zAcc * ACCEL_POS_TRANSITION;
+
+  xVel = xVel + xAcc * ACCEL_VEL_TRANSITION;
+  yVel = yVel + yAcc * ACCEL_VEL_TRANSITION;
+  zVel = zVel + zAcc * ACCEL_VEL_TRANSITION;
 
   Serial.print(xVel);
   Serial.print(" ");
   Serial.print(yVel);
   Serial.print(" ");
-  Serial.println(zVel);
+  Serial.print(zVel);
+  Serial.print(" ");
+  Serial.println("");
 
 }
 
