@@ -2,6 +2,7 @@ let port;
 let reader;
 
 const connectBtn = document.getElementById('connect');
+const resetBtn = document.getElementById('reset');
 const log = document.getElementById('log');
 
 function toggleUIConnected(connected) {
@@ -40,20 +41,9 @@ async function readLoop() {
         if (value) {
             log.textContent = value;
             let res = value.split(' ').map( Number );
-            if (res.length > 5) {
-                
-                //cnt++;
-                //console.log(res);
-                /*if(cnt > 100) {
-                   Plotly.relayout('chart',{
-                        xaxis: {
-                                  range: [cnt-100,cnt]
-                               }
-                   });
-                }*/
-                if (cnt % 25 == 0) {
-                    Plotly.extendTraces('chart', {y: [[res[0]]], x: [[res[1]]]}, [0]);
-                }
+            if (res.length == 6) {
+                console.log(res);
+                Plotly.extendTraces('chart', {y: [[res[0]]], x: [[res[1]]]}, [0]);
             }
         }
         if (done) {
@@ -102,9 +92,21 @@ async function clickConnect() {
     toggleUIConnected(true);
 }
 
+async function clickReset() {
+    Plotly.newPlot('chart', [{
+        y:[0],
+        x:[0],
+        type:'line'
+    }], {
+        width:650,
+        height:650
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     
     connectBtn.addEventListener('click', clickConnect);
+    resetBtn.addEventListener('reset', clickReset);
     
     if (!'serial' in navigator) {
         const notSupported = document.getElementById('notSupported');
@@ -115,6 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
         y:[0],
         x:[0],
         type:'line'
-    }]);
+    }], {
+        width:650,
+        height:650
+    });
 
 });
