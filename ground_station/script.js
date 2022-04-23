@@ -106,7 +106,7 @@ async function clickReset() {
 document.addEventListener('DOMContentLoaded', () => {
     
     connectBtn.addEventListener('click', clickConnect);
-    resetBtn.addEventListener('reset', clickReset);
+    resetBtn.addEventListener('click', clickReset);
     
     if (!'serial' in navigator) {
         const notSupported = document.getElementById('notSupported');
